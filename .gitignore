@@ -2,9 +2,9 @@
 .classpath
 .settings/
 .idea/
-.project/
+.project
 SephirothEmulator.iml
 
 #linked class file
 *.class
-
+bin/
