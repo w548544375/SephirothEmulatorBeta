@@ -1,0 +1,10 @@
+#ignore IDE config file
+.classpath
+.settings/
+.idea/
+.project/
+SephirothEmulator.iml
+
+#linked class file
+*.class
+
