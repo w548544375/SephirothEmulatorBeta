@@ -1,20 +1,22 @@
 package com.weiguang.test;
 
 import com.weiguang.sephiroth.util.ByteUtil;
+import org.apache.ibatis.io.Resources;
 import org.junit.Test;
 
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import java.util.Calendar;
 
 /**
  * Created by wWX313869 on 2017/1/9.
  */
 public class TestSize {
-
+    public static String path = "D:\\MarsWorkSpace\\Spring-Netty\\src\\com\\weiguang\\test\\";
     @Test
-    public void TestCount() throws UnsupportedEncodingException {
+    public void TestReadBareData() {
         int length1 = Data1.array.length;
         int length2 = Data2.array.length;
         int length3 = Data3.array.length;
@@ -26,6 +28,108 @@ public class TestSize {
         buffer.put(Data2.array);
         buffer.put(Data3.array);
         buffer.flip();
+        try {
+            PlayerServerInfo(buffer);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void TestReadLobbyInfo() throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(path+"PlayerLobbyInfoTxt.txt"));
+        String line = reader.readLine();
+        String[] arrys = line.split(" ");
+        byte[] byteArray = new byte[arrys.length];
+        for (int i = 0; i < arrys.length; i++) {
+            byteArray[i] = (byte) ((byte) Integer.parseInt(arrys[i], 16) & 0xFF);
+        }
+        ByteBuffer buffer = ByteBuffer.wrap(byteArray);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        PlayerLobbyInfo(buffer);
+    }
+
+
+    public void PlayerLobbyInfo(ByteBuffer buffer) throws UnsupportedEncodingException {
+        int characterNumber = buffer.get();
+        for(int i =0;i<characterNumber;i++){
+            System.out.println("Name："+ByteUtil.getString(buffer));
+            System.out.println("Race："+ByteUtil.getString(buffer));
+            System.out.println( "Sex:"+(buffer.getInt()== 0 ? "女":"男"));
+            System.out.println("JobName："+ByteUtil.getString(buffer));
+            System.out.println( "NeedJobChange:"+buffer.getInt());
+            Calendar calendar =  Calendar.getInstance();
+            calendar.setTimeInMillis(buffer.getInt());
+            System.out.println("LastLoginTime:"+calendar.getTime().toString());
+            System.out.println("Trible："+ByteUtil.getString(buffer));
+            System.out.println("TribleDesc："+ByteUtil.getString(buffer));
+            System.out.println("HairName："+ByteUtil.getString(buffer));
+            System.out.println("FaceName："+ByteUtil.getString(buffer));
+            System.out.println("BodyName："+ByteUtil.getString(buffer));
+            System.out.println("Alingnment:"+buffer.getInt());
+            System.out.println("CastleName："+ByteUtil.getString(buffer));
+            System.out.println("PlayerLv:"+buffer.getInt());
+            System.out.println("CurExp/MaxExp:"+buffer.getLong()+"/"+buffer.getLong());
+            String wornItemsCase = "";
+            for (int j = 0; j < 25; j++) {
+                byte hasEquip = buffer.get();
+                if (hasEquip == 1) {
+                    System.out.println("=========================================");
+                    System.out.println("ItemNameId："+ByteUtil.getString(buffer));
+                    System.out.println("ItemLv:"+buffer.getInt());
+                    byte attr = buffer.get();
+                    for(int k=0;k<attr;k++){
+                        System.out.println("EnglishAttr："+k+":"+ByteUtil.getString(buffer));
+                        System.out.println("CNAttr："+k+":"+ByteUtil.getString(buffer));
+                    }
+                    System.out.println("ModelName:"+ByteUtil.getString(buffer));
+                    System.out.println("ShowNameLocalized:"+ByteUtil.getString(buffer));
+                    System.out.println("Int:"+buffer.getInt());
+                    System.out.println("Byte:"+buffer.get());
+                    System.out.println("EquipPlace:"+buffer.getInt());
+                    System.out.println("Int:"+buffer.getInt());
+                    System.out.println("Width:"+buffer.getInt());
+                    System.out.println("Height:"+buffer.getInt());
+                    int num = buffer.getInt();
+                    for(int k=0;k<num;k++){
+                        System.out.println("String:"+ByteUtil.getString(buffer));
+                    }
+                    int bool1 = buffer.get();
+                    if(bool1 != 0){
+                        System.out.println("Int:"+buffer.getInt());
+                    }
+                    int bool2= buffer.get();
+                    if(bool2 != 0){
+                        System.out.println("Int:"+buffer.getInt());
+                    }
+                    wornItemsCase += "1";
+                }else {
+                    wornItemsCase += "0";
+                }
+            }
+            System.out.println(wornItemsCase);
+            buffer.position(buffer.position()+8);
+        }
+    }
+
+
+
+    @Test
+    public void TestReadRedData() throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(path+"RedMagicData.txt"));
+        String line = reader.readLine();
+        String[] arrys = line.split(" ");
+        byte[] byteArray = new byte[arrys.length];
+        for (int i = 0; i < arrys.length; i++) {
+            byteArray[i] = (byte) ((byte) Integer.parseInt(arrys[i], 16) & 0xFF);
+        }
+        ByteBuffer buffer = ByteBuffer.wrap(byteArray);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        PlayerServerInfo(buffer);
+    }
+
+
+    public void PlayerServerInfo(ByteBuffer buffer) throws UnsupportedEncodingException {
         String name = ByteUtil.getString(buffer);
         System.out.println("PlayerName:" + name);
         String raceName = ByteUtil.getString(buffer);
@@ -39,7 +143,7 @@ public class TestSize {
         System.out.println("Trible:" + ByteUtil.getString(buffer));
         System.out.println("TribleDes:" + ByteUtil.getString(buffer));
         System.out.println("Unknow:" + ByteUtil.getString(buffer));
-        System.out.println("Unknow:" + ByteUtil.getString(buffer));
+        System.out.println("TribleName:" + ByteUtil.getString(buffer));
         System.out.println("Unknow:" + ByteUtil.getString(buffer));
         System.out.println("HairColor:" + ByteUtil.getString(buffer));
         System.out.println("Unknow:" + ByteUtil.getString(buffer));
@@ -52,22 +156,22 @@ public class TestSize {
         System.out.println("Int:" + buffer.getInt());
         System.out.println("等级:" + buffer.getInt());
         System.out.println("Long:" + buffer.getLong());
-        System.out.println("Long:" + buffer.getLong());
-        System.out.println("Long:" + buffer.getLong());
-        System.out.println("Int:" + buffer.getInt());
-        System.out.println("Int:" + buffer.getInt());
-        System.out.println("Int:" + buffer.getInt());
-        System.out.println("Int:" + buffer.getInt());
-        System.out.println("Int:" + buffer.getInt());
-        System.out.println("Int:" + buffer.getInt());
-        System.out.println("Int:" + buffer.getInt());
-        System.out.println("Int:" + buffer.getInt());
-        System.out.println("Int:" + buffer.getInt());
-        System.out.println("Int:" + buffer.getInt());
-        System.out.println("Int:" + buffer.getInt());
-        System.out.println("Int:" + buffer.getInt());
-        System.out.println("Int:" + buffer.getInt());
-        System.out.println("Long:" + buffer.getLong());
+        System.out.println("当前经验:" + buffer.getLong());
+        System.out.println("升级所需经验:" + buffer.getLong());
+        System.out.println("HP:" + buffer.getInt());
+        System.out.println("MAXHP:" + buffer.getInt());
+        System.out.println("MP:" + buffer.getInt());
+        System.out.println("MAXMP:" + buffer.getInt());
+        System.out.println("Strength:" + buffer.getInt());
+        System.out.println("敏捷:" + buffer.getInt());
+        System.out.println("精神:" + buffer.getInt());
+        System.out.println("白魔法:" + buffer.getInt());
+        System.out.println("红魔法:" + buffer.getInt());
+        System.out.println("黄魔法:" + buffer.getInt());
+        System.out.println("蓝魔法:" + buffer.getInt());
+        System.out.println("黑魔法:" + buffer.getInt());
+        System.out.println("剩余点数:" + buffer.getInt());
+        System.out.println("Leni:" + buffer.getLong());
         String wornItemsCase = "";
         for (int i = 0; i < 0x19; i++) {
             byte hasEquip = buffer.get();
@@ -102,7 +206,7 @@ public class TestSize {
         //人物属性
         System.out.println("属性Byte:" + buffer.get());
         System.out.println("属性Bool:" + buffer.get());
-        System.out.println("属性String:" +ByteUtil.getString(buffer));
+        System.out.println("属性String:" + ByteUtil.getString(buffer));
         System.out.println("属性String:" + ByteUtil.getString(buffer));
         System.out.println("属性Int:" + buffer.getInt());
         System.out.println("属性Int:" + buffer.getInt());
@@ -133,38 +237,7 @@ public class TestSize {
         //WornItem(WornItem3.array);
     }
 
-    public void WornItem(ByteBuffer buffer) throws UnsupportedEncodingException {
-        System.out.println("====================================================");
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-        System.out.println("ModelName:" + ByteUtil.getString(buffer));
-        System.out.println("物品等级:" + buffer.getInt());
-        byte raceType = buffer.get();
-        System.out.println("职业:" + raceType);
-        System.out.println("AttachMentModelName:" + ByteUtil.getString(buffer));
-        System.out.println("AttatchMentShowName:" + ByteUtil.getString(buffer));
-        System.out.println("ShowName:" + ByteUtil.getString(buffer));
-        System.out.println("物品说明:" + ByteUtil.getString(buffer));
-        System.out.println("Int:" + buffer.getInt());
-        System.out.println("Width:" + buffer.getInt());
-        System.out.println("Height:" + buffer.getInt());
-        System.out.println("物品类型名:" + ByteUtil.getString(buffer));
-
-        System.out.println("物品类型ID:" + buffer.getInt());
-        System.out.println("Int:" + buffer.getInt());
-        System.out.println("耐久:" + buffer.getFloat() + "/" + buffer.getFloat());
-        byte shouldBeIntRead = buffer.get();
-        if (shouldBeIntRead != 0) {
-            System.out.println("BeforePriceInt:" + buffer.getInt());
-        }
-        System.out.println("卖出价格:" + buffer.getLong());
-        System.out.println("修理价格:" + buffer.getLong());
-        buffer.position(buffer.position() + 9);
-        int intVla = buffer.getInt();
-        if (intVla != 0) {
-            System.out.println("SpecialInt:" + intVla);
-        }
-        byte type = buffer.get();
-        System.out.println("GearType>>>>>>>>>:" + type);
+    public void judgeMentType(byte type,ByteBuffer buffer) throws UnsupportedEncodingException {
         switch (type) {
             case 5: {
                 System.out.println("防御率:" + buffer.getFloat());
@@ -201,9 +274,52 @@ public class TestSize {
                 System.out.println("Int:" + buffer.getInt());
                 break;
             }
+            case 25:{
+                System.out.println("Float:"+buffer.getFloat());
+                System.out.println("String:"+ByteUtil.getString(buffer));
+                for (int j = 0; j < 7; j++) {
+                    System.out.println("Int:" + buffer.getInt());
+                }
+                break;
+            }
             default:
                 break;
         }
+    }
+
+    public void WornItem(ByteBuffer buffer) throws UnsupportedEncodingException {
+        System.out.println("====================================================");
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        System.out.println("ModelName:" + ByteUtil.getString(buffer));
+        System.out.println("物品等级:" + buffer.getInt());
+        byte raceType = buffer.get();
+        System.out.println("职业:" + raceType);
+        System.out.println("AttachMentModelName:" + ByteUtil.getString(buffer));
+        System.out.println("AttatchMentShowName:" + ByteUtil.getString(buffer));
+        System.out.println("ShowName:" + ByteUtil.getString(buffer));
+        System.out.println("物品说明:" + ByteUtil.getString(buffer));
+        System.out.println("Int:" + buffer.getInt());
+        System.out.println("Width:" + buffer.getInt());
+        System.out.println("Height:" + buffer.getInt());
+        System.out.println("物品类型名:" + ByteUtil.getString(buffer));
+
+        System.out.println("物品类型ID:" + buffer.getInt());
+        System.out.println("Int:" + buffer.getInt());
+        System.out.println("耐久:" + buffer.getFloat() + "/" + buffer.getFloat());
+        byte shouldBeIntRead = buffer.get();
+        if (shouldBeIntRead != 0) {
+            System.out.println("个数:" + buffer.getInt());
+        }
+        System.out.println("卖出价格:" + buffer.getLong());
+        System.out.println("修理价格:" + buffer.getLong());
+        buffer.position(buffer.position() + 9);
+        int intVla = buffer.getInt();
+        if (intVla != 0) {
+            System.out.println("SpecialInt:" + intVla);
+        }
+        byte type = buffer.get();
+        System.out.println("GearType>>>>>>>>>:" + type);
+        judgeMentType(type,buffer);
         byte boolVal = buffer.get();
         if (boolVal != 0) {
             System.out.println("Int1:" + buffer.getInt());
@@ -222,7 +338,7 @@ public class TestSize {
 
         int intVal2 = buffer.getInt();
         if (intVal2 != 0) {
-            System.out.println("AttrEffect4:" + ByteUtil.getString(buffer));
+            System.out.println("SingleEffect:" + ByteUtil.getString(buffer));
         }
         byte attrs = buffer.get();
         for (int j = 0; j < attrs; j++) {
@@ -236,7 +352,7 @@ public class TestSize {
         for (int i = 0; i < strPart.length(); i++) {
             int ch = (int) strPart.charAt(i);
             String strHex = Integer.toHexString(ch).toUpperCase();
-            hexString = hexString + "0x" + strHex + ",";
+            hexString = hexString  + strHex + " ";
         }
         return hexString;
     }
@@ -322,7 +438,7 @@ public class TestSize {
 
     @Test
     public void TestTransString() throws UnsupportedEncodingException {
-        String text = "WaterReduce";
+        String text = "LifeSp";
         byte[] arrsy = text.getBytes("GB2312");
         System.out.println(Arrays.toString(arrsy));
         System.out.println(stringToHexString(text));
